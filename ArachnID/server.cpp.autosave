@@ -8,14 +8,9 @@
 #include "pthread.h"
 #include <bits/stdc++.h>
 #include <QDebug>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 using namespace std;
 
-#define PORT 8080
-void test(int joj, string s);
+#define PORT 8228
 
 
 void* server(void* arg) {
@@ -57,16 +52,6 @@ void* server(void* arg) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-<<<<<<< HEAD
-        valread = read( new_socket , buffer, 2048);
-        QString s(buffer);
-        qDebug() << s << endl;
-
-
-
-
-       test(new_socket, s.toStdString());
-=======
         qDebug() << address.sin_family << endl;
         qDebug() << address.sin_addr.s_addr << endl;
         qDebug() << address.sin_port << endl;
@@ -74,42 +59,10 @@ void* server(void* arg) {
         valread = read(new_socket , buffer, 2048);
         QString s(buffer);
         qDebug() << s << endl;
-        test(new_socket);
->>>>>>> 76a2f65ad8eb92c1142c39f2d5c8a87a19f59898
-
-        //send(new_socket ,  , 400 , 0 );
-        // printf("Hello message sent\n");
-        fflush(stdout);
+        qDebug() << valread << endl;
+        
+        send(new_socket ,  buffer, valread, 0 );
+        qDebug() << "Hello message sent" << endl;
         close(new_socket);
     }
-}
-
-void test(int new_socket, string s) {
-    struct addrinfo hints, *res;
-        int sockfd;
-
-        char buf[20560];
-        long int byte_count;
-
-          //get host info, make socket and connect it
-          memset(&hints, 0,sizeof hints);
-          hints.ai_family=AF_UNSPEC;
-          hints.ai_socktype = SOCK_STREAM;
-          getaddrinfo("www.example.com","80", &hints, &res);
-          sockfd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-          printf("Connecting...\n");
-          connect(sockfd,res->ai_addr,res->ai_addrlen);
-          printf("Connected!\n");
-          string header = s;
-          send(sockfd,header.c_str(),header.size(),0);
-          printf("GET Sent...\n");
-          //all right ! now that we're connected, we can receive some data!
-          byte_count = recv(sockfd,buf,sizeof(buf)-1,0); // <-- -1 to leave room for a null terminator
-          buf[byte_count] = 0; // <-- add the null terminator
-          printf("recv()'d %ld bytes of data in buf\n",byte_count);
-          printf("%s",buf);
-
-          send(new_socket , buf , (unsigned long)byte_count , 0 );
-          printf("acabou\n");
-          return;
 }
