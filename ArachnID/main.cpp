@@ -41,11 +41,10 @@ long obtainQueue() {
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     MainWindow w;
-    w.show();    
-    void* arg = NULL;
-    int val;
+    w.show();
     queueId[0] = obtainQueue();
-    pthread_create(&server_thread, NULL, server, arg);
+    int val;
+    pthread_create(&server_thread, NULL, server, (void*) queueId);
     auto ret = a.exec();
     pthread_cancel(server_thread);
     return ret;
