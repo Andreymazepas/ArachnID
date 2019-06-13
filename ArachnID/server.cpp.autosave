@@ -60,6 +60,7 @@ void* server(void* arg) {
         QString s(buffer);
         qDebug() << s << endl;
         qDebug() << valread << endl;
+        
         send(new_socket ,  buffer, valread, 0 );
         qDebug() << "Hello message sent" << endl;
         close(new_socket);

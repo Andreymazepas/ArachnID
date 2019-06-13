@@ -8,9 +8,14 @@
 #include "pthread.h"
 #include <bits/stdc++.h>
 #include <QDebug>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 using namespace std;
 
-#define PORT 8228
+#define PORT 8080
+void test(int joj);
 
 
 void* server(void* arg) {
@@ -59,12 +64,39 @@ void* server(void* arg) {
         valread = read(new_socket , buffer, 2048);
         QString s(buffer);
         qDebug() << s << endl;
-        qDebug() << valread << endl;
-        for(int i = 0; i < valread; i += 5) {
-            buffer[i] = 'a' + (rand() % 7);
-        }
-        send(new_socket ,  buffer, valread, 0 );
-        qDebug() << "Hello message sent" << endl;
+        test(new_socket);
+
+        //send(new_socket ,  , 400 , 0 );
+        // printf("Hello message sent\n");
         close(new_socket);
     }
+}
+
+void test(int new_socket) {
+    struct addrinfo hints, *res;
+        int sockfd;
+
+        char buf[2056];
+        long int byte_count;
+
+          //get host info, make socket and connect it
+          memset(&hints, 0,sizeof hints);
+          hints.ai_family=AF_UNSPEC;
+          hints.ai_socktype = SOCK_STREAM;
+          getaddrinfo("www.example.com","80", &hints, &res);
+          sockfd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+          printf("Connecting...\n");
+          connect(sockfd,res->ai_addr,res->ai_addrlen);
+          printf("Connected!\n");
+          string header = "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\n\r\n";
+          send(sockfd,header.c_str(),header.size(),0);
+          printf("GET Sent...\n");
+          //all right ! now that we're connected, we can receive some data!
+          byte_count = recv(sockfd,buf,sizeof(buf)-1,0); // <-- -1 to leave room for a null terminator
+          buf[byte_count] = 0; // <-- add the null terminator
+          printf("recv()'d %ld bytes of data in buf\n",byte_count);
+          printf("%s",buf);
+
+          send(new_socket , buf , (unsigned long)byte_count , 0 );
+          return;
 }
