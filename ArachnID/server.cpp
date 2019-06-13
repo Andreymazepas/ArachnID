@@ -15,7 +15,7 @@
 using namespace std;
 
 #define PORT 8080
-void test(int joj);
+void test(int joj, string s);
 
 void* server(void*) {
     int server_fd, new_socket, valread;
@@ -55,28 +55,29 @@ void* server(void*) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-        QString s(buffer);
         valread = read( new_socket , buffer, 2048);
+        QString s(buffer);
         qDebug() << s << endl;
 
 
 
 
-        test(new_socket);
+       test(new_socket, s.toStdString());
 
 
 
         //send(new_socket ,  , 400 , 0 );
         // printf("Hello message sent\n");
+        fflush(stdout);
         close(new_socket);
     }
 }
 
-void test(int new_socket) {
+void test(int new_socket, string s) {
     struct addrinfo hints, *res;
         int sockfd;
 
-        char buf[2056];
+        char buf[20560];
         long int byte_count;
 
           //get host info, make socket and connect it
@@ -88,7 +89,7 @@ void test(int new_socket) {
           printf("Connecting...\n");
           connect(sockfd,res->ai_addr,res->ai_addrlen);
           printf("Connected!\n");
-          string header = "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\n\r\n";
+          string header = s;
           send(sockfd,header.c_str(),header.size(),0);
           printf("GET Sent...\n");
           //all right ! now that we're connected, we can receive some data!
@@ -98,5 +99,6 @@ void test(int new_socket) {
           printf("%s",buf);
 
           send(new_socket , buf , (unsigned long)byte_count , 0 );
+          printf("acabou\n");
           return;
 }
