@@ -25,11 +25,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        http_helper.cpp \
         main.cpp \
         mainwindow.cpp \
         server.cpp
 
 HEADERS += \
+        http_helper.h \
         mainwindow.h \
         server.h
 

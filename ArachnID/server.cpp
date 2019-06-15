@@ -12,6 +12,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include "http_helper.h"
+
 using namespace std;
 
 void do_send(int joj, string s);
@@ -22,12 +24,12 @@ void debug(string s) {
 
 int read_all_content_from_socket(int sock_fd,char* buf) {
     recv(sock_fd,buf,1,0);
-    int read = 1;
-    while(recv(sock_fd,buf+read,1,MSG_DONTWAIT) > 0) {
+    int total = 1;
+    while(recv(sock_fd,buf+total,1,MSG_DONTWAIT) > 0) {
 //        debug("eita " + to_string(read));
-        read++;
+        total++;
     }
-    return read;
+    return total;
 }
 
 QString read_from_socket(int socket) {
@@ -64,28 +66,6 @@ void attach_socket_to_port(int server_fd,struct sockaddr_in *address, int port =
 }
 
 
-string getHostFromHTTPRequest(string request) {
-    string target = "\r\nHost: ";
-    for(int i = 0; i < int(request.size()); i++) {
-        for(int j = i; j < int(target.size())+ i and j < int(request.size()); j++) {
-            if(target[j-i] != request[j]) break;
-            if(j == int(target.size()) + i - 1) {
-                string result = "";
-                for(int k = j + 1; k < int(request.size()) - 1; k++) {
-                    if(request[k] == '\r' and request[k+1] == '\n') {
-                        break;
-                    }
-                    result += request[k];
-                }
-
-                qDebug() << QString(result.c_str()) << endl;
-                return result;
-            }
-        }
-    }
-//    throw exception("kekek");
-}
-
 int send_request_to_the_web(string request) {
     struct addrinfo hints, *res;
     int web_sock_fd;
@@ -118,6 +98,8 @@ void* server(void* arg) {
         perror("listen");
         exit(EXIT_FAILURE);
     }
+
+
     while(1) {
         debug("======================================================");
         int browser_socket;
@@ -127,12 +109,18 @@ void* server(void* arg) {
         }
 
         QString request = read_from_socket(browser_socket);
+        debug("Incoming request!\n");
         qDebug() << request.toUtf8() << endl;
         int web_sock_fd = send_request_to_the_web(request.toStdString());
         QString response = read_from_socket(web_sock_fd);
+        debug("Incoming response!\n");
+        qDebug() << response.toUtf8() << endl;;
+//        response = "kekekeke";
         send_response_to_browser(browser_socket, response);
+        debug("response sent!");
         close(web_sock_fd);
         close(browser_socket);
+        debug("closed sockets");
     }
 }
 
