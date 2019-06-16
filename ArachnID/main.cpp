@@ -12,11 +12,18 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
 
 #define MSQID 140140522
 
 pthread_t server_thread;
-
 long queueId[1];
 
 long obtainQueue() {
@@ -37,6 +44,7 @@ long obtainQueue() {
     }
     return aux;
 }
+
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);

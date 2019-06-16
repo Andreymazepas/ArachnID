@@ -1,36 +1,29 @@
 #include "http_helper.h"
 #include <bits/stdc++.h>
+#include <QString>
+#include <QStringList>
+#include <QDebug>
 
 using namespace std;
 
-//class HTTP_parser {
-//    private:
-//        QString host;
-//        QString content;
-//        QString size;
-
-//    HTTP_parser(string) {
-
-//    }
-//};
+map<QString, QString> HTTP_parser::atributes;
 
 
-string getHostFromHTTPRequest(string request) {
-    string target = "\r\nHost: ";
-    for(int i = 0; i < int(request.size()); i++) {
-        for(int j = i; j < int(target.size())+ i and j < int(request.size()); j++) {
-            if(target[j-i] != request[j]) break;
-            if(j == int(target.size()) + i - 1) {
-                string result = "";
-                for(int k = j + 1; k < int(request.size()) - 1; k++) {
-                    if(request[k] == '\r' and request[k+1] == '\n') {
-                        break;
-                    }
-                    result += request[k];
-                }
-                return result;
-            }
-        }
-    }
-//    throw exception("kekek");
+QString HTTP_parser::get_atribute(QString atribute) {
+    return atributes[atribute];
 }
+
+void HTTP_parser::parse(QString payload) {
+    atributes.clear();
+    QStringList lines = payload.split(QString("\r\n"));
+    for(auto line : lines) {
+//        qDebug() << line << endl;
+        if(line.size() == 0) continue;
+        auto aux = line.trimmed().toLower();
+        QStringList parts = aux.split(":");
+        if(parts.size() < 2) continue;
+        atributes[parts[0].trimmed()] = parts[1].trimmed();
+    }
+
+}
+

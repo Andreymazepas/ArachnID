@@ -16,26 +16,27 @@
 
 using namespace std;
 
-void do_send(int joj, string s);
+char BRBN[4] = {'\r', '\n', '\r', '\n'};
 
 void debug(string s) {
     qDebug() << QString(s.c_str()) << endl;
 }
 
-int read_all_content_from_socket(int sock_fd,char* buf) {
-    recv(sock_fd,buf,1,0);
-    int total = 1;
-    while(recv(sock_fd,buf+total,1,MSG_DONTWAIT) > 0) {
-//        debug("eita " + to_string(read));
+int read_until_terminators(int sock_fd,char* buf, char* terminator, int terminators_size) {
+    int total = 0;
+    while(1) {
+        bool should_break = false;
+        if(total >= terminators_size) {
+            for(int i = 0; i < terminators_size; i++) {
+                if(buf[total - terminators_size + i] != terminator[i]) break;
+                if(i == terminators_size - 1) should_break = true;
+            }
+        }
+        if(should_break) break;
+        read(sock_fd,buf+total,1);
         total++;
     }
     return total;
-}
-
-QString read_from_socket(int socket) {
-    char buffer[1 << 18];
-    read_all_content_from_socket(socket, buffer);
-    return QString(buffer);
 }
 
 int create_server_fd() {
@@ -66,26 +67,21 @@ void attach_socket_to_port(int server_fd,struct sockaddr_in *address, int port =
 }
 
 
-int send_request_to_the_web(string request) {
+int send_request_to_the_web(QString request) {
     struct addrinfo hints, *res;
     int web_sock_fd;
-    char buf[1 << 18];
-    long int byte_count;
 
     //get host info, make socket and connect it
     memset(&hints, 0,sizeof hints);
     hints.ai_family=AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    int get_addr_res = getaddrinfo(getHostFromHTTPRequest(request).c_str(),"80", &hints, &res);
+    HTTP_parser::parse(request);
+    int get_addr_res = getaddrinfo(HTTP_parser::get_atribute("host").toStdString().c_str(),"80", &hints, &res);
     web_sock_fd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
     connect(web_sock_fd,res->ai_addr,res->ai_addrlen);
-    send(web_sock_fd,request.c_str(),request.size(),0);
+    send(web_sock_fd,request.toStdString().c_str(),request.size(),0);
     return web_sock_fd;
-}
-
-void send_response_to_browser(int browser_socket, QString response) { // ver esses tamanho
-    send(browser_socket , response.toStdString().c_str() , (unsigned long)response.size() , 0 );
 }
 
 void* server(void* arg) {
@@ -100,27 +96,37 @@ void* server(void* arg) {
     }
 
 
+    char buffer[1 << 18];
     while(1) {
-        debug("======================================================");
         int browser_socket;
         if ((browser_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
 
-        QString request = read_from_socket(browser_socket);
-        debug("Incoming request!\n");
-        qDebug() << request.toUtf8() << endl;
-        int web_sock_fd = send_request_to_the_web(request.toStdString());
-        QString response = read_from_socket(web_sock_fd);
-        debug("Incoming response!\n");
-        qDebug() << response.toUtf8() << endl;;
-//        response = "kekekeke";
-        send_response_to_browser(browser_socket, response);
-        debug("response sent!");
+        read_until_terminators(browser_socket, buffer, BRBN, 4);
+        QString request(buffer);
+
+        debug("request");
+        qDebug() << request << endl;
+        int web_sock_fd = send_request_to_the_web(request);
+
+        read_until_terminators(web_sock_fd, buffer, BRBN, 4);
+        QString response_header(buffer);
+        debug("header");
+        qDebug() << response_header << endl;
+        HTTP_parser::parse(response_header);
+        int content_length = HTTP_parser::get_atribute("content-length").toInt();
+        for(int i = 0; i < content_length; i++) {
+            read(web_sock_fd, buffer + i, 1);
+        }
+        QString content(buffer);
+        debug("content");
+        qDebug() << content << endl;
+        send(browser_socket, (response_header + content).toStdString().c_str(), (response_header + content).size() , 0 );
+
         close(web_sock_fd);
         close(browser_socket);
-        debug("closed sockets");
     }
 }
 
