@@ -67,7 +67,7 @@ void attach_socket_to_port(int server_fd,struct sockaddr_in *address, int port =
 }
 
 
-int send_request_to_the_web(QString request) {
+int send_request_to_the_web(char buffer[]) {
     struct addrinfo hints, *res;
     int web_sock_fd;
 
@@ -76,11 +76,11 @@ int send_request_to_the_web(QString request) {
     hints.ai_family=AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    HTTP_parser::parse(request);
+    HTTP_parser::parse(buffer);
     int get_addr_res = getaddrinfo(HTTP_parser::get_atribute("host").toStdString().c_str(),"80", &hints, &res);
     web_sock_fd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
     connect(web_sock_fd,res->ai_addr,res->ai_addrlen);
-    send(web_sock_fd,request.toStdString().c_str(),request.size(),0);
+    send(web_sock_fd,buffer,2<<18,0);
     return web_sock_fd;
 }
 
@@ -96,7 +96,7 @@ void* server(void* arg) {
     }
 
 
-    char buffer[1 << 18];
+    char buffer[2 << 18];
     while(1) {
         int browser_socket;
         if ((browser_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
@@ -104,26 +104,20 @@ void* server(void* arg) {
             exit(EXIT_FAILURE);
         }
 
-        read_until_terminators(browser_socket, buffer, BRBN, 4);
-        QString request(buffer);
+        read(browser_socket, buffer, 2<<18);
+        //QString request(buffer);
 
         debug("request");
-        qDebug() << request << endl;
-        int web_sock_fd = send_request_to_the_web(request);
+        qDebug() << buffer << endl;
+        int web_sock_fd = send_request_to_the_web(buffer);
 
-        read_until_terminators(web_sock_fd, buffer, BRBN, 4);
+        //receives response
+        read(web_sock_fd, buffer, (2<<18)-1);
         QString response_header(buffer);
         debug("header");
         qDebug() << response_header << endl;
-        HTTP_parser::parse(response_header);
-        int content_length = HTTP_parser::get_atribute("content-length").toInt();
-        for(int i = 0; i < content_length; i++) {
-            read(web_sock_fd, buffer + i, 1);
-        }
-        QString content(buffer);
-        debug("content");
-        qDebug() << content << endl;
-        send(browser_socket, (response_header + content).toStdString().c_str(), (response_header + content).size() , 0 );
+        //sends it back to the browser
+        write(browser_socket, buffer, 2<<18 );
 
         close(web_sock_fd);
         close(browser_socket);
