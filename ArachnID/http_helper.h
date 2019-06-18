@@ -5,12 +5,11 @@
 using namespace std;
 
 
-class HTTP_parser {
-    private:
-        static map<QString, QString> atributes;
+class HTTP_Helper {
     public:
-    static void parse(QString payload);
-    static QString get_atribute(QString field);
+    static map<QString, QString>  parse_html_header(QString payload);
+    static QString build_html_header(map<QString, QString> fields, QString first_line);
+
 };
 
 #endif // HTTP_HELPER_H
