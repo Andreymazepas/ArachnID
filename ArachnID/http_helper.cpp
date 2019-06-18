@@ -6,15 +6,9 @@
 
 using namespace std;
 
-map<QString, QString> HTTP_parser::atributes;
 
-
-QString HTTP_parser::get_atribute(QString atribute) {
-    return atributes[atribute];
-}
-
-void HTTP_parser::parse(QString payload) {
-    atributes.clear();
+map<QString, QString> HTTP_Helper::parse(QString payload) {
+    map<QString, QString> result;
     QStringList lines = payload.split(QString("\r\n"));
     for(auto line : lines) {
 //        qDebug() << line << endl;
@@ -22,8 +16,8 @@ void HTTP_parser::parse(QString payload) {
         auto aux = line.trimmed().toLower();
         QStringList parts = aux.split(":");
         if(parts.size() < 2) continue;
-        atributes[parts[0].trimmed()] = parts[1].trimmed();
+        result[parts[0].trimmed()] = parts[1].trimmed();
     }
-
+    return result;
 }
 
