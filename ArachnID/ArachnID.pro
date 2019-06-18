@@ -33,7 +33,8 @@ SOURCES += \
 HEADERS += \
         http_helper.h \
         mainwindow.h \
-        server.h
+        server.h \
+        spider.h
 
 FORMS += \
         mainwindow.ui
