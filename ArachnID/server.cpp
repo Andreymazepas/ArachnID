@@ -76,7 +76,7 @@ int send_request_to_the_web(char buffer[]) {
     hints.ai_family=AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    auto options = HTTP_Helper::parse(buffer);
+    auto options = HTTP_Helper::parse_html_header(buffer);
     int get_addr_res = getaddrinfo(options["host"].toStdString().c_str(),"80", &hints, &res);
     web_sock_fd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
     connect(web_sock_fd,res->ai_addr,res->ai_addrlen);

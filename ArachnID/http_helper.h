@@ -7,7 +7,9 @@ using namespace std;
 
 class HTTP_Helper {
     public:
-    static map<QString, QString> parse(QString payload);
+    static map<QString, QString>  parse_html_header(QString payload);
+    static QString build_html_header(map<QString, QString> fields, QString first_line);
+
 };
 
 #endif // HTTP_HELPER_H

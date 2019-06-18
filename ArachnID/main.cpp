@@ -19,7 +19,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-
+#include <QDebug>
 
 #define MSQID 140140522
 
@@ -47,6 +47,7 @@ long obtainQueue() {
 
 
 int main(int argc, char *argv[]) {
+
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
