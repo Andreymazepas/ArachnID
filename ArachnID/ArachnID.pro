@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,11 +28,12 @@ SOURCES += \
         http_helper.cpp \
         main.cpp \
         mainwindow.cpp \
-        server.cpp
+        proxyserver.cpp
 
 HEADERS += \
         http_helper.h \
         mainwindow.h \
+        proxyserver.h \
         server.h
 
 FORMS += \

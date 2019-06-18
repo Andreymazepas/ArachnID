@@ -50,11 +50,11 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
-    queueId[0] = obtainQueue();
+    //queueId[0] = obtainQueue();
     int val;
-    pthread_create(&server_thread, NULL, server, (void*) queueId);
+    //pthread_create(&server_thread, NULL, server, (void*) queueId);
     auto ret = a.exec();
-    pthread_cancel(server_thread);
+    //pthread_cancel(server_thread);
     return ret;
 }
 

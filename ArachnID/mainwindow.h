@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QDebug>
+#include <proxyserver.h>
+#include <QtConcurrent>
 
 namespace Ui {
 class MainWindow;
@@ -15,8 +18,20 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+signals:
+    void send_request(QString request);
+    void send_response(QString response);
+private slots:
+    void on_pushButton_3_clicked();
+    void on_pushButton_4_clicked();
+
+public slots:
+    void got_request(QString text);
+    void got_response(QString text);
+
 private:
     Ui::MainWindow *ui;
+    ProxyServer pServer;
 };
 
 #endif // MAINWINDOW_H
