@@ -80,7 +80,7 @@ int send_request_to_the_web(char buffer[]) {
     int get_addr_res = getaddrinfo(HTTP_parser::get_atribute("host").toStdString().c_str(),"80", &hints, &res);
     web_sock_fd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
     connect(web_sock_fd,res->ai_addr,res->ai_addrlen);
-    send(web_sock_fd,buffer,2<<18,0);
+    send(web_sock_fd,buffer,1<<15,0);
     return web_sock_fd;
 }
 
@@ -96,7 +96,7 @@ void* server(void* arg) {
     }
 
 
-    char buffer[2 << 18];
+    char buffer[1 << 15];
     while(1) {
         int browser_socket;
         if ((browser_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
@@ -104,21 +104,28 @@ void* server(void* arg) {
             exit(EXIT_FAILURE);
         }
 
-        read(browser_socket, buffer, 2<<18);
+//        read(browser_socket, buffer, 1<<15);
+        read_until_terminators(browser_socket, buffer, BRBN, 4);
+        debug("received browser request");
         //QString request(buffer);
-
-        debug("request");
-        qDebug() << buffer << endl;
+        QString request(buffer);
+        qDebug() << request << endl;
         int web_sock_fd = send_request_to_the_web(buffer);
-
+        debug("sent request to the web");
         //receives response
-        read(web_sock_fd, buffer, (2<<18)-1);
-        QString response_header(buffer);
-        debug("header");
-        qDebug() << response_header << endl;
-        //sends it back to the browser
-        write(browser_socket, buffer, 2<<18 );
+        read(web_sock_fd, buffer, (1<<15));
 
+//        int ammount_read = read_until_terminators(web_sock_fd, buffer, BRBN, 4);
+//        debug("read browser response");
+        QString response_header(buffer);
+        qDebug() << response_header << endl;
+//        HTTP_parser::parse(response_header);
+//        int cont_length = HTTP_parser::get_atribute("content-length").toInt();
+//        read(web_sock_fd,buffer + ammount_read, cont_length);
+        //sends it back to the browser
+//        write(browser_socket, buffer, ammount_read + cont_length);
+        write(browser_socket, buffer, 1 << 15);
+        debug("wrote to browser");
         close(web_sock_fd);
         close(browser_socket);
     }
