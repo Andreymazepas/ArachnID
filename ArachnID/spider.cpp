@@ -8,6 +8,7 @@ using namespace std;
 
 
 map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
+    map<QString, vector<QString>> graph;
     //          path     file
     queue<QString> q;
     q.push(start_path);
@@ -18,8 +19,8 @@ map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
         map<QString, QString> fields;
         fields[QString("host")] = host;
         fields[QString("connection")] = QString("close");
-//        HTTP_Helper::build_html_header(fields, first_line);
+        HTTP_Helper::build_html_header(fields, first_line);
     }
-    return {};
+    return graph;
 //    return {};
 }

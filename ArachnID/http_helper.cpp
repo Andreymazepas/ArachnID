@@ -6,8 +6,8 @@
 
 using namespace std;
 
-QString build_html_header(map<QString, QString>& fields, QString first_line) {
-    QString result;
+QString HTTP_Helper::build_html_header(map<QString, QString>& fields, QString first_line) {
+    QString result = "";
     QString CRNL{QChar::CarriageReturn, QChar::LineFeed};
     result += first_line;
     for(auto key_val : fields) {
@@ -16,8 +16,6 @@ QString build_html_header(map<QString, QString>& fields, QString first_line) {
     result += CRNL;
     return result;
 }
-
-
 
 map<QString, QString> HTTP_Helper::parse_html_header(QString payload) {
     map<QString, QString> result;
