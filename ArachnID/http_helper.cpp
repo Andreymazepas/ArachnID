@@ -6,7 +6,7 @@
 
 using namespace std;
 
-QString build_html_header(map<QString, QString> fields, QString first_line) {
+QString build_html_header(map<QString, QString>& fields, QString first_line) {
     QString result;
     QString CRNL{QChar::CarriageReturn, QChar::LineFeed};
     result += first_line;

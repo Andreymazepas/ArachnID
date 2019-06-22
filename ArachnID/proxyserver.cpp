@@ -1,10 +1,7 @@
 #include "proxyserver.h"
 
 
-ProxyServer::ProxyServer(QObject *parent) : QObject(parent)
-{
-
-}
+ProxyServer::ProxyServer(QObject *parent) : QObject(parent) {}
 
 ProxyServer::~ProxyServer(){
     mStop = false;
@@ -25,13 +22,12 @@ void ProxyServer::setup( ) {
 void ProxyServer::listen_browser() {
     debug("hmmmm\n");
     if ((browser_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-
         perror("accept");
         exit(EXIT_FAILURE);
     }
 
     debug("escutando!!!\n");
-    read(browser_socket, buffer, 1<<15);
+//    read(browser_socket, buffer, 1 << 15);
     read_until_terminators(browser_socket, buffer, BRBN, 4);
     debug("received browser request");
     //QString request(buffer);
@@ -39,7 +35,6 @@ void ProxyServer::listen_browser() {
     qDebug() << request << endl;
     emit got_request(request);
 }
-
 
 void ProxyServer::send_request_to_the_web(QString request) {
     struct addrinfo hints, *res;
@@ -49,12 +44,21 @@ void ProxyServer::send_request_to_the_web(QString request) {
     memset(&hints, 0,sizeof hints);
     hints.ai_family=AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
+    debug("will parse!");
+    debug(request.toStdString());
+    auto options = HTTP_Helper::parse_html_header(request);
+    debug("parsed");
+    debug("host is + " + options["host"].toStdString());
+    int get_addr_res = getaddrinfo(options["host"].toStdString().c_str(),"80", &hints, &res);
+    debug("got address");
 
-    HTTP_parser::parse(buffer);
-    int get_addr_res = getaddrinfo(HTTP_parser::get_atribute("host").toStdString().c_str(),"80", &hints, &res);
     web_sock_fd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+    debug("made socket");
     ::connect(web_sock_fd,res->ai_addr,res->ai_addrlen);
+    debug("connected");
+    debug("will send request");
     send(web_sock_fd,Crequest.c_str(),1<<15,0);
+    debug("sent request");
     read(web_sock_fd, buffer, (1<<15));
     QString response_header(buffer);
     qDebug() << response_header << endl;

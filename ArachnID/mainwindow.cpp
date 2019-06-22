@@ -7,16 +7,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow) {
     ui->setupUi(this);
+
     connect(&pServer, &ProxyServer::got_request, this, &MainWindow::got_request);
     connect(this, &MainWindow::send_request, &pServer, &ProxyServer::send_request_to_the_web);
 
     connect(&pServer, &ProxyServer::got_response, this, &MainWindow::got_response);
     connect(this, &MainWindow::send_response, &pServer, &ProxyServer::send_response_to_the_browser);
 
-    QFuture<void> test = QtConcurrent::run(&this->pServer, &ProxyServer::setup);
+    QFuture<void> _ = QtConcurrent::run(&this->pServer, &ProxyServer::setup);
 }
 
 MainWindow::~MainWindow() {
+    delete &(this->pServer);
     delete ui;
 }
 
