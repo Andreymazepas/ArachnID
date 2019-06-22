@@ -28,9 +28,11 @@ SOURCES += \
         http_helper.cpp \
         main.cpp \
         mainwindow.cpp \
-        proxyserver.cpp
+        proxyserver.cpp \
+        spider.cpp
 
 HEADERS += \
+        common.h \
         http_helper.h \
         mainwindow.h \
         proxyserver.h \

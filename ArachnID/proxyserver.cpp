@@ -1,5 +1,5 @@
 #include "proxyserver.h"
-
+#include "common.h"
 
 ProxyServer::ProxyServer(QObject *parent) : QObject(parent) {}
 
@@ -36,17 +36,31 @@ void ProxyServer::listen_browser() {
     emit got_request(request);
 }
 
+string fix_lost_characters(string payload) {
+    string result = "";
+    for(auto c : payload) {
+        if(c != '\n') {
+            result += c;
+        } else {
+            result += '\r';
+            result += '\n';
+        }
+    }
+    return result;
+}
+
 void ProxyServer::send_request_to_the_web(QString request) {
     struct addrinfo hints, *res;
+    debug(request.toStdString());
+    string fixed = fix_lost_characters(request.toStdString());
 
-    string Crequest = request.toStdString();
     //get host info, make socket and connect it
     memset(&hints, 0,sizeof hints);
     hints.ai_family=AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     debug("will parse!");
-    debug(request.toStdString());
-    auto options = HTTP_Helper::parse_html_header(request);
+    debug(fixed);
+    auto options = HTTP_Helper::parse_html_header(QString(fixed.c_str()));
     debug("parsed");
     debug("host is + " + options["host"].toStdString());
     int get_addr_res = getaddrinfo(options["host"].toStdString().c_str(),"80", &hints, &res);
@@ -57,7 +71,7 @@ void ProxyServer::send_request_to_the_web(QString request) {
     ::connect(web_sock_fd,res->ai_addr,res->ai_addrlen);
     debug("connected");
     debug("will send request");
-    send(web_sock_fd,Crequest.c_str(),1<<15,0);
+    send(web_sock_fd,fixed.c_str(),1<<15,0);
     debug("sent request");
     read(web_sock_fd, buffer, (1<<15));
     QString response_header(buffer);
@@ -66,7 +80,7 @@ void ProxyServer::send_request_to_the_web(QString request) {
 }
 
 void ProxyServer::send_response_to_the_browser(QString response) {
-    string Cresponse = response.toStdString();
+    string Cresponse = fix_lost_characters(response.toStdString());
     write(browser_socket, Cresponse.c_str(), 1<<15);
     close(web_sock_fd);
     close(browser_socket);

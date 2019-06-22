@@ -5,11 +5,6 @@
 #include <QString>
 using namespace std;
 
-map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
-    //          path     file
-    queue<pair<QString, QString>> q;
-
-
-}
+map<QString, vector<QString>> crawl_page(QString host, QString start_path);
 
 #endif // SPIDER_H
