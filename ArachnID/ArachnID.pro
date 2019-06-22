@@ -39,7 +39,8 @@ HEADERS += \
         spider.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+        spider.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
