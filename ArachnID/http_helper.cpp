@@ -8,25 +8,31 @@ using namespace std;
 
 QString HTTP_Helper::build_html_header(map<QString, QString>& fields, QString first_line) {
     QString result = "";
-    QString CRNL{QChar::CarriageReturn, QChar::LineFeed};
-    result += first_line;
+    QString CRNL = "";
+    CRNL += QChar::CarriageReturn;
+    CRNL += QChar::LineFeed;
+    result += first_line + CRNL;
+    qDebug() << "first line build\n";
+    qDebug() << result << endl;
     for(auto key_val : fields) {
-        result += key_val.first + ": " + key_val.second + CRNL + CRNL;
+        result += key_val.first + ": " + key_val.second + CRNL;
     }
     result += CRNL;
     return result;
 }
 
-map<QString, QString> HTTP_Helper::parse_html_header(QString payload) {
-    map<QString, QString> result;
+pair<map<QString, QString>,QString> HTTP_Helper::parse_html_header(QString payload) {
+    map<QString, QString> resulting_map;
     QStringList lines = payload.split(QString("\r\n"));
-    for(auto line : lines) {
-        if(line.size() == 0) continue;
-        auto aux = line.trimmed().toLower();
+    QString resulting_first_line = lines[0].trimmed();
+
+    for(int i = 1; i < lines.size(); i++) {
+        if(lines[i].size() == 0) continue;
+        auto aux = lines[i].trimmed().toLower();
         QStringList parts = aux.split(":");
         if(parts.size() < 2) continue;
-        result[parts[0].trimmed()] = parts[1].trimmed();
+        resulting_map[parts[0].trimmed()] = parts[1].trimmed();
     }
-    return result;
+    return {resulting_map, resulting_first_line};
 }
 
