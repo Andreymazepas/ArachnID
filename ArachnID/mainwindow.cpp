@@ -22,9 +22,10 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::on_pushButton_3_clicked()
-{
-    emit send_request(this->ui->plainTextEdit->toPlainText());
+void MainWindow::on_pushButton_3_clicked() {
+    auto aux = this->ui->plainTextEdit->toPlainText();
+    this->ui->plainTextEdit->clear();
+    emit send_request(aux);
 }
 
 void MainWindow::got_request(QString text)
@@ -41,5 +42,7 @@ void MainWindow::got_response(QString text)
 
 void MainWindow::on_pushButton_4_clicked()
 {
-    emit send_response(this->ui->plainTextEdit_2->toPlainText());
+    auto aux = this->ui->plainTextEdit_2->toPlainText();
+    this->ui->plainTextEdit_2->clear();
+    emit send_response(aux);
 }

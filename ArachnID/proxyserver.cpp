@@ -1,5 +1,6 @@
 #include "proxyserver.h"
 #include "common.h"
+#include <QtConcurrent>
 
 ProxyServer::ProxyServer(QObject *parent) : QObject(parent) {}
 
@@ -28,7 +29,8 @@ void ProxyServer::listen_browser() {
 
     debug("escutando!!!\n");
 //    read(browser_socket, buffer, 1 << 15);
-    read_until_terminators(browser_socket, buffer, BRBN, 4);
+    int amm_read  = read_until_terminators(browser_socket, buffer, BRBN, 4);
+    buffer[amm_read] = 0;
     debug("received browser request");
     //QString request(buffer);
     QString request(buffer);
@@ -60,30 +62,79 @@ void ProxyServer::send_request_to_the_web(QString request) {
     hints.ai_socktype = SOCK_STREAM;
     debug("will parse!");
     debug(fixed);
-    auto options = HTTP_Helper::parse_html_header(QString(fixed.c_str()));
-    debug("parsed");
-    debug("host is + " + options["host"].toStdString());
-    int get_addr_res = getaddrinfo(options["host"].toStdString().c_str(),"80", &hints, &res);
-    debug("got address");
 
+    QString first_line;
+    map<QString, QString> fields;
+
+    tie(fields, first_line) = HTTP_Helper::parse_html_header(QString(fixed.c_str()));
+    qDebug() << first_line << endl;
+    debug("parsed");
+    debug("host is + " + fields["host"].toStdString());
+
+    int get_addr_res = getaddrinfo(fields["host"].toStdString().c_str(),"80", &hints, &res);
+    debug("got address");
+    fields["accept-encoding"] = "identity";
+    fields["connection"] = "close";
+
+    fixed = HTTP_Helper::build_html_header(fields, first_line).toStdString();
+    debug(fixed);
     web_sock_fd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
     debug("made socket");
     ::connect(web_sock_fd,res->ai_addr,res->ai_addrlen);
     debug("connected");
+
     debug("will send request");
-    send(web_sock_fd,fixed.c_str(),1<<15,0);
+    send(web_sock_fd,fixed.c_str(),fixed.size(),0);
     debug("sent request");
-    read(web_sock_fd, buffer, (1<<15));
+    int amm_read = read_until_terminators(web_sock_fd, buffer, BRBN, 4);
+    buffer[amm_read] = 0;
+//    read(web_sock_fd, buffer, (1<<15));
+    string aux(buffer);
     QString response_header(buffer);
+
+    tie(fields, first_line) = HTTP_Helper::parse_html_header(response_header);
+    amm_read = read(web_sock_fd, buffer, fields["content-length"].toInt());
+    buffer[amm_read] = 0;
+    QString response_body(buffer);
+    debug(aux);
     qDebug() << response_header << endl;
-    emit got_response(response_header);
+    qDebug() << response_body << endl;
+    emit got_response(response_header + response_body);
 }
 
-void ProxyServer::send_response_to_the_browser(QString response) {
-    string Cresponse = fix_lost_characters(response.toStdString());
-    write(browser_socket, Cresponse.c_str(), 1<<15);
+pair<QString, QString> split_header_and_body(QString whole_response) {
+    int first_occ = whole_response.indexOf("\n\n");
+    if(first_occ == -1) {
+        qDebug() << "expected header to contain \n\n but nope" << endl;
+        exit(0);
+    }
+    QString header = "", body = "";
+    for (int i = 0; i < first_occ; i++) {
+        header.append(whole_response[i]);
+    }
+    header.append("\n\n");
+
+    for(int i = first_occ + 2; i < whole_response.size(); i++) {
+        body.append(whole_response[i]);
+    }
+    return {header, body};
+}
+
+void ProxyServer::send_response_to_the_browser(QString whole_response) {
+    QString header, body;
+    debug("sending to browser");
+    tie(header, body) = split_header_and_body(whole_response);
+    qDebug() << header<< endl;
+    qDebug() << body << endl;
+    string Cresponse = fix_lost_characters(header.toStdString()) + body.toStdString();
+
+    debug(Cresponse);
+    write(browser_socket, Cresponse.c_str(), Cresponse.size());
+    debug("wrote");
     close(web_sock_fd);
     close(browser_socket);
+    QFuture<void> _ = QtConcurrent::run(this, &ProxyServer::listen_browser);
+
 }
 
 void ProxyServer::stop() {
