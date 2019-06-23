@@ -67,3 +67,10 @@ int SocketUtils::create_server_socket(struct sockaddr_in* address, int port) {
     }
     return server_fd;
 }
+
+void SocketUtils::read_exactly(int sock_fd, char* buf, int num_bytes) {
+    int amm_read = 0;
+    while(amm_read < num_bytes) {
+        amm_read += read(sock_fd, buf + amm_read, 1 << 15);
+    }
+}

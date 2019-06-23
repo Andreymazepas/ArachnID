@@ -37,7 +37,6 @@ string fix_lost_characters(string payload) {
     return result;
 }
 
-
 void ProxyServer::send_request_to_the_web(QString request) {
     string fixed = fix_lost_characters(request.toStdString());
     QString first_line;
@@ -47,18 +46,15 @@ void ProxyServer::send_request_to_the_web(QString request) {
     fixed = HTTP_Helper::build_html_header(fields, first_line).toStdString();
     web_sock_fd = SocketUtils::connect_and_get_socket(fields["host"]);
     send(web_sock_fd,fixed.c_str(),fixed.size(),0);
-    int amm_read = SocketUtils::read_until_terminators(web_sock_fd, buffer, BRBN, 4);
-    buffer[amm_read] = 0;
+    int header_size = SocketUtils::read_until_terminators(web_sock_fd, buffer, BRBN, 4);
+    buffer[header_size] = 0;
     string aux(buffer);
     QString response_header(buffer);
     tie(fields, first_line) = HTTP_Helper::parse_html_header(response_header);
     isText = fields["content-type"].contains("text");
     content_length = fields["content-length"].toInt();
-    amm_read = 0;
-    while(amm_read < content_length) {
-        amm_read += read(web_sock_fd, buffer+amm_read, 1 << 15);
-    }
-    buffer[amm_read] = 0;
+    SocketUtils::read_exactly(web_sock_fd, buffer, content_length);
+    buffer[content_length] = 0;
     QString response_body(buffer);
     emit got_response(response_header + (isText ? response_body : ""));
 }

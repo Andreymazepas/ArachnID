@@ -38,13 +38,30 @@ map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
     map<QString, vector<QString>> graph;
     //          path     file
     queue<QString> q;
+    char buf[1 << 22];
+    char BRBN[4] = {'\r', '\n', '\r', '\n'};
     q.push(start_path);
     while(q.size()) {
         QString cur = q.front();
         q.pop();
         QString request = build_request_for_path(host, cur);
         int web_socket = SocketUtils::connect_and_get_socket(host);
+
         write(web_socket, request.toStdString().c_str(), request.toStdString().size());
+
+        int header_size = SocketUtils::read_until_terminators(web_socket, buf, BRBN, 4);
+        buf[header_size] = 0;
+        QString response_header(buf);
+
+        map<QString, QString> fields;
+        QString first_line;
+        tie(fields, first_line) = HTTP_Helper::parse_html_header(response_header);
+        SocketUtils::read_exactly(web_socket, buf, fields["content-length"].toInt());
+        QString content(buf);
+
+        qDebug() << response_header << endl;
+        qDebug() << content << endl;
+
     }
     return graph;
 //    return {};
