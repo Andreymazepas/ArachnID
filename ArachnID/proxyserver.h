@@ -50,8 +50,10 @@ private:
     int addrlen;
     int server_fd;
     int browser_socket;
-    char buffer[1 << 15];
+    char buffer[1 << 22];
     int web_sock_fd;
+    bool isText = true;
+    int content_length;
 
 };
 

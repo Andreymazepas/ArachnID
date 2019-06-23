@@ -6,6 +6,15 @@
 
 using namespace std;
 
+map<QString, QString> HTTP_Helper::simplify_http_header(map<QString ,QString> complex_header) {
+    map<QString, QString> simplified_header = complex_header;
+    simplified_header["connection"] = "close";
+    simplified_header["accept-encoding"] = "identity";
+    simplified_header.erase("range");
+    simplified_header.erase("if-range");
+    return simplified_header;
+}
+
 QString HTTP_Helper::build_html_header(map<QString, QString>& fields, QString first_line) {
     QString result = "";
     QString CRNL = "";

@@ -28,7 +28,7 @@ void ProxyServer::listen_browser() {
     }
 
     debug("escutando!!!\n");
-//    read(browser_socket, buffer, 1 << 15);
+//    read(browser_socket, buffer, 1 << 1                                                                                                                                                                                   5);
     int amm_read  = read_until_terminators(browser_socket, buffer, BRBN, 4);
     buffer[amm_read] = 0;
     debug("received browser request");
@@ -51,6 +51,8 @@ string fix_lost_characters(string payload) {
     return result;
 }
 
+
+
 void ProxyServer::send_request_to_the_web(QString request) {
     struct addrinfo hints, *res;
     debug(request.toStdString());
@@ -72,9 +74,14 @@ void ProxyServer::send_request_to_the_web(QString request) {
     debug("host is + " + fields["host"].toStdString());
 
     int get_addr_res = getaddrinfo(fields["host"].toStdString().c_str(),"80", &hints, &res);
+    if(get_addr_res == EAI_NONAME) {
+        qDebug() << "Esse host não foi encontrado!" << endl;
+        QtConcurrent::run(this, &ProxyServer::listen_browser);
+        return ;
+    }
     debug("got address");
-    fields["accept-encoding"] = "identity";
-    fields["connection"] = "close";
+
+    fields = HTTP_Helper::simplify_http_header(fields);
 
     fixed = HTTP_Helper::build_html_header(fields, first_line).toStdString();
     debug(fixed);
@@ -93,13 +100,20 @@ void ProxyServer::send_request_to_the_web(QString request) {
     QString response_header(buffer);
 
     tie(fields, first_line) = HTTP_Helper::parse_html_header(response_header);
-    amm_read = read(web_sock_fd, buffer, fields["content-length"].toInt());
+    isText = fields["content-type"].contains("text");
+
+    content_length = fields["content-length"].toInt();
+    amm_read = 0;
+    while(amm_read < content_length) {
+        amm_read += read(web_sock_fd, buffer+amm_read, 1 << 15);
+    }
     buffer[amm_read] = 0;
+
     QString response_body(buffer);
     debug(aux);
     qDebug() << response_header << endl;
     qDebug() << response_body << endl;
-    emit got_response(response_header + response_body);
+    emit got_response(response_header + (isText ? response_body : ""));
 }
 
 pair<QString, QString> split_header_and_body(QString whole_response) {
@@ -122,14 +136,23 @@ pair<QString, QString> split_header_and_body(QString whole_response) {
 
 void ProxyServer::send_response_to_the_browser(QString whole_response) {
     QString header, body;
+    string Cresponse;
     debug("sending to browser");
-    tie(header, body) = split_header_and_body(whole_response);
+    if(isText) {
+        tie(header, body) = split_header_and_body(whole_response);
+        Cresponse = fix_lost_characters(header.toStdString()) + body.toStdString();
+        write(browser_socket, Cresponse.c_str(), Cresponse.size());
+    } else {
+        header = whole_response;
+        Cresponse = fix_lost_characters(header.toStdString());
+        write(browser_socket, Cresponse.c_str(), Cresponse.size());
+        write(browser_socket, buffer, content_length);
+    }
     qDebug() << header<< endl;
     qDebug() << body << endl;
-    string Cresponse = fix_lost_characters(header.toStdString()) + body.toStdString();
 
     debug(Cresponse);
-    write(browser_socket, Cresponse.c_str(), Cresponse.size());
+
     debug("wrote");
     close(web_sock_fd);
     close(browser_socket);
@@ -187,6 +210,11 @@ int ProxyServer::read_until_terminators(int sock_fd,char* buf, char* terminator,
         if(should_break) break;
         read(sock_fd,buf+total,1);
         total++;
+        if(total == 1 << 15){
+            qDebug() << "dios mio" << endl;
+            buf[1 << 15] = 0;
+            qDebug() << QString(buf) << endl;
+        }
     }
     return total;
 }

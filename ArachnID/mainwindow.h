@@ -21,8 +21,8 @@ signals:
     void send_request(QString request);
     void send_response(QString response);
 private slots:
-    void on_pushButton_3_clicked();
-    void on_pushButton_4_clicked();
+    void on_requestButton_clicked();
+    void on_responseButton_clicked();
 
 public slots:
     void got_request(QString text);

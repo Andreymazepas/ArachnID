@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::send_response, &pServer, &ProxyServer::send_response_to_the_browser);
 
     QFuture<void> _ = QtConcurrent::run(&this->pServer, &ProxyServer::setup);
+    this->ui->requestButton->setDisabled(true);
+    this->ui->responseButton->setDisabled(true);
 }
 
 MainWindow::~MainWindow() {
@@ -22,27 +24,32 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::on_pushButton_3_clicked() {
-    auto aux = this->ui->plainTextEdit->toPlainText();
-    this->ui->plainTextEdit->clear();
+void MainWindow::on_requestButton_clicked() {
+    auto aux = this->ui->requestTextEdit->toPlainText();
+    this->ui->requestTextEdit->clear();
+    this->ui->requestButton->setDisabled(true);
     emit send_request(aux);
 }
 
 void MainWindow::got_request(QString text)
 {
    //qDebug() << "From mainWindow: " << name << " " << number;
-    this->ui->plainTextEdit->setPlainText(text);
+    this->ui->responseButton->setDisabled(true);
+    this->ui->requestButton->setEnabled(true);
+    this->ui->requestTextEdit->setPlainText(text);
 }
 
 void MainWindow::got_response(QString text)
 {
    //qDebug() << "From mainWindow: " << name << " " << number;
-    this->ui->plainTextEdit_2->setPlainText(text);
+    this->ui->responseButton->setEnabled(true);
+    this->ui->responseTextEdit->setPlainText(text);
 }
 
-void MainWindow::on_pushButton_4_clicked()
+void MainWindow::on_responseButton_clicked()
 {
-    auto aux = this->ui->plainTextEdit_2->toPlainText();
-    this->ui->plainTextEdit_2->clear();
+    this->ui->responseButton->setDisabled(true);
+    auto aux = this->ui->responseTextEdit->toPlainText();
+    this->ui->responseTextEdit->clear();
     emit send_response(aux);
 }

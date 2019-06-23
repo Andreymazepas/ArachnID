@@ -40,7 +40,7 @@
      <string>Dump</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_3">
+   <widget class="QPushButton" name="requestButton">
     <property name="geometry">
      <rect>
       <x>100</x>
@@ -53,7 +53,7 @@
      <string>Request</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_4">
+   <widget class="QPushButton" name="responseButton">
     <property name="geometry">
      <rect>
       <x>550</x>
@@ -66,7 +66,7 @@
      <string>Reply</string>
     </property>
    </widget>
-   <widget class="QPlainTextEdit" name="plainTextEdit">
+   <widget class="QPlainTextEdit" name="requestTextEdit">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -76,11 +76,10 @@
      </rect>
     </property>
     <property name="plainText">
-     <string>request
-</string>
+     <string/>
     </property>
    </widget>
-   <widget class="QPlainTextEdit" name="plainTextEdit_2">
+   <widget class="QPlainTextEdit" name="responseTextEdit">
     <property name="geometry">
      <rect>
       <x>460</x>
@@ -90,7 +89,7 @@
      </rect>
     </property>
     <property name="plainText">
-     <string>response</string>
+     <string/>
     </property>
    </widget>
   </widget>
