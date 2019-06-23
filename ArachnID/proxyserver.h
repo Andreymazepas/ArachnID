@@ -41,7 +41,6 @@ public slots:
 private:
     bool mStop = false;
     char BRBN[4] = {'\r', '\n', '\r', '\n'};
-    int read_until_terminators(int sock_fd,char* buf, char* terminator, int terminators_size);
     int create_server_fd();
     void attach_socket_to_port(int server_fd,struct sockaddr_in *address, int port = 8080);
     void debug(string debug);

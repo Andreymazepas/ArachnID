@@ -1,6 +1,7 @@
 #include "proxyserver.h"
 #include "common.h"
 #include <QtConcurrent>
+#include "socket_utils.h"
 
 ProxyServer::ProxyServer(QObject *parent) : QObject(parent) {}
 
@@ -29,7 +30,7 @@ void ProxyServer::listen_browser() {
 
     debug("escutando!!!\n");
 //    read(browser_socket, buffer, 1 << 1                                                                                                                                                                                   5);
-    int amm_read  = read_until_terminators(browser_socket, buffer, BRBN, 4);
+    int amm_read  = SocketUtils::read_until_terminators(browser_socket, buffer, BRBN, 4);
     buffer[amm_read] = 0;
     debug("received browser request");
     //QString request(buffer);
@@ -50,7 +51,6 @@ string fix_lost_characters(string payload) {
     }
     return result;
 }
-
 
 
 void ProxyServer::send_request_to_the_web(QString request) {
@@ -93,7 +93,7 @@ void ProxyServer::send_request_to_the_web(QString request) {
     debug("will send request");
     send(web_sock_fd,fixed.c_str(),fixed.size(),0);
     debug("sent request");
-    int amm_read = read_until_terminators(web_sock_fd, buffer, BRBN, 4);
+    int amm_read = SocketUtils::read_until_terminators(web_sock_fd, buffer, BRBN, 4);
     buffer[amm_read] = 0;
 //    read(web_sock_fd, buffer, (1<<15));
     string aux(buffer);
@@ -197,24 +197,3 @@ void ProxyServer::debug(string s) {
     qDebug() << QString(s.c_str()) << endl;
 }
 
-int ProxyServer::read_until_terminators(int sock_fd,char* buf, char* terminator, int terminators_size) {
-    int total = 0;
-    while(1) {
-        bool should_break = false;
-        if(total >= terminators_size) {
-            for(int i = 0; i < terminators_size; i++) {
-                if(buf[total - terminators_size + i] != terminator[i]) break;
-                if(i == terminators_size - 1) should_break = true;
-            }
-        }
-        if(should_break) break;
-        read(sock_fd,buf+total,1);
-        total++;
-        if(total == 1 << 15){
-            qDebug() << "dios mio" << endl;
-            buf[1 << 15] = 0;
-            qDebug() << QString(buf) << endl;
-        }
-    }
-    return total;
-}
