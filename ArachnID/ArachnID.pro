@@ -29,14 +29,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         proxyserver.cpp \
-        spider.cpp
+        spider.cpp \
+        socket_utils.cpp
 
 HEADERS += \
         common.h \
         http_helper.h \
         mainwindow.h \
         proxyserver.h \
-        spider.h
+        spider.h \
+        socket_utils.h
 
 FORMS += \
         mainwindow.ui \

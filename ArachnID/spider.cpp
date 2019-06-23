@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include "http_helper.h"
+#include "socket_utils.h"
 
 using namespace std;
 
@@ -33,23 +34,6 @@ QString build_request_for_path(QString host, QString path) {
     return HTTP_Helper::build_html_header(fields, first_line);
 }
 
-int connect_and_get_socket(QString host) {
-    struct addrinfo hints, *res;
-    memset(&hints, 0,sizeof hints);
-    hints.ai_family=AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    int get_addr_res = getaddrinfo(host.toStdString().c_str(),"80", &hints, &res);
-    if(get_addr_res == EAI_NONAME) {
-        qDebug() << "Esse host não foi encontrado!" << endl;
-//        QtConcurrent::run(this, &ProxyServer::listen_browser);
-        exit(1);
-    }
-    int web_sock_fd = socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-    ::connect(web_sock_fd,res->ai_addr,res->ai_addrlen);
-    return web_sock_fd;
-}
-
-
 map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
     map<QString, vector<QString>> graph;
     //          path     file
@@ -59,7 +43,7 @@ map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
         QString cur = q.front();
         q.pop();
         QString request = build_request_for_path(host, cur);
-        int web_socket = connect_and_get_socket(host);
+        int web_socket = SocketUtils::connect_and_get_socket(host);
         write(web_socket, request.toStdString().c_str(), request.toStdString().size());
     }
     return graph;

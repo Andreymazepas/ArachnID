@@ -41,12 +41,10 @@ public slots:
 private:
     bool mStop = false;
     char BRBN[4] = {'\r', '\n', '\r', '\n'};
-    int create_server_fd();
-    void attach_socket_to_port(int server_fd,struct sockaddr_in *address, int port = 8080);
     void debug(string debug);
     struct sockaddr_in address;
     void listen_browser();
-    int addrlen;
+    int addrlen = sizeof(address);
     int server_fd;
     int browser_socket;
     char buffer[1 << 22];
