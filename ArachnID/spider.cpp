@@ -34,6 +34,23 @@ QString build_request_for_path(QString host, QString path) {
     return HTTP_Helper::build_html_header(fields, first_line);
 }
 
+QStringList extract_links(QString content) {
+    int next = 0;
+    QStringList result;
+    QString pattern = "<a href=\"";
+    while(int next_index = content.indexOf(pattern, next) != -1) {
+        int link_start = next_index + pattern.size();
+        QString acc;
+        int i = link_start;
+        while(content[i] != "\"") {
+            acc.append(content[i]);
+        }
+        next = link_start + 1;
+        result.append(acc);
+    }
+    return result;
+}
+
 map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
     map<QString, vector<QString>> graph;
     //          path     file
@@ -62,7 +79,34 @@ map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
         qDebug() << response_header << endl;
         qDebug() << content << endl;
 
+        QStringList links = extract_links(content);
+
+        for(QString link : links) {
+            // link vazio, nao deveria acontecer em páginas normais,
+            // mas é possível sair de output da função.
+            if(link.isEmpty()) continue;
+            // link externo
+            if(link.startsWith("http")) continue;
+
+            // URL absoluta
+            if(link.startsWith("/")) {
+                QString actual_link = link.right(int(link.size()) - 1);
+                q.push(actual_link);
+                continue;
+            }
+
+            // a partir daqui o link é (ou deveria ser) relativo
+            QString cur_path = cur.left(cur.lastIndexOf("/") + 1);
+            QString cur_file = cur.right(int(cur.size() - cur.lastIndexOf("/") - 1));
+            QString actual_link;
+            if(link.startsWith("./")) {
+                actual_link = link.right(int(link.size()) - 2);
+            } else {
+                actual_link = link;
+            }
+            q.push(cur_path + actual_link);
+        }
+
     }
     return graph;
-//    return {};
 }

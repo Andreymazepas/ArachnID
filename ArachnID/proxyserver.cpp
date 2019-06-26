@@ -42,6 +42,12 @@ void ProxyServer::send_request_to_the_web(QString request) {
     QString first_line;
     map<QString, QString> fields;
     tie(fields, first_line) = HTTP_Helper::parse_html_header(QString(fixed.c_str()));
+    // por enquanto nao suportamos POST e CONNECT
+    if(first_line.contains("POST") or first_line.contains("CONNECT")) {
+        close(browser_socket);
+        QtConcurrent::run(this, &ProxyServer::listen_browser);
+        return;
+    }
     fields = HTTP_Helper::simplify_http_header(fields);
     fixed = HTTP_Helper::build_html_header(fields, first_line).toStdString();
     web_sock_fd = SocketUtils::connect_and_get_socket(fields["host"]);
@@ -92,7 +98,7 @@ void ProxyServer::send_response_to_the_browser(QString whole_response) {
     }
     close(web_sock_fd);
     close(browser_socket);
-    QFuture<void> _ = QtConcurrent::run(this, &ProxyServer::listen_browser);
+    QtConcurrent::run(this, &ProxyServer::listen_browser);
 }
 
 void ProxyServer::stop() {
