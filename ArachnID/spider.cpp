@@ -39,11 +39,14 @@ QStringList Spider::extract_links(QString content) {
     QStringList result;
     QString pattern = "<a href=\"";
     while(int next_index = content.indexOf(pattern, next) != -1) {
+//        qDebug() << "lopp extract\n";
         int link_start = next_index + pattern.size();
         QString acc;
         int i = link_start;
-        while(content[i] != "\"") {
+        while(content[i] != '\"') {
+//            qDebug() << "sublopp extract\n";
             acc.append(content[i]);
+            i++;
         }
         next = link_start + 1;
         result.append(acc);
@@ -63,6 +66,7 @@ map<QString, vector<QString>> Spider::crawl_page(QString host, QString start_pat
     while(q.size()) {
         QString cur = q.front();
         q.pop();
+        qDebug() << cur << endl;
         QString request = build_request_for_path(host, cur);
         qDebug() << request << endl;
         int web_socket = SocketUtils::connect_and_get_socket(host);
@@ -85,6 +89,7 @@ map<QString, vector<QString>> Spider::crawl_page(QString host, QString start_pat
         QStringList links = extract_links(content);
 
         for(QString link : links) {
+            qDebug() << "link: " << link << endl;
             // link vazio, nao deveria acontecer em páginas normais,
             // mas é possível sair de output da função.
             if(link.isEmpty()) continue;
