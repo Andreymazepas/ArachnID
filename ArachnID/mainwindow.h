@@ -6,6 +6,7 @@
 #include <proxyserver.h>
 #include <QtConcurrent>
 #include "spiderwindow.h"
+#include "dumpwindow.h"
 
 namespace Ui {
     class MainWindow;
@@ -26,6 +27,8 @@ private slots:
     void on_responseButton_clicked();
     void on_spiderButton_clicked();
 
+    void on_dumpButton_clicked();
+
 public slots:
     void got_request(QString text);
     void got_response(QString text);
@@ -33,6 +36,7 @@ public slots:
 private:
     Ui::MainWindow *ui;
     SpiderWindow* spiderUi = new SpiderWindow(this);
+    DumpWindow dumpUi;
     ProxyServer pServer;
 };
 

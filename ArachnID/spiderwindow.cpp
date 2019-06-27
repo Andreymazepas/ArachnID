@@ -15,6 +15,15 @@ SpiderWindow::SpiderWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::Sp
 
 class MainWindow : public QMainWindow{};
 
+void SpiderWindow::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    qDebug() << "ShowEvent: Apagando campos" << endl;
+    this->ui->lineEdit->clear();
+    this->ui->plainTextEdit->clear();
+}
+
+
+
 SpiderWindow::~SpiderWindow() {
     delete ui;
 }

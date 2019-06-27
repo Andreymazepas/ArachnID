@@ -54,11 +54,11 @@ void MainWindow::on_responseButton_clicked() {
 }
 
 void MainWindow::on_spiderButton_clicked() {
-    if(spiderUi == nullptr) {
-        spiderUi = new SpiderWindow(this);
+    if(spiderUi->isHidden()) {
+        spiderUi->show();
+    } else {
+        spiderUi->activateWindow();
     }
-    spiderUi->show();
-    this->ui->spiderButton->setDisabled(true);
 }
 
 void MainWindow::treat_spider_closed() {
@@ -66,4 +66,13 @@ void MainWindow::treat_spider_closed() {
     delete(spiderUi);
     spiderUi = nullptr;
     this->ui->spiderButton->setEnabled(true);
+}
+
+void MainWindow::on_dumpButton_clicked()
+{
+    if(dumpUi.isHidden()){
+        dumpUi.show();
+    } else {
+        dumpUi.activateWindow();
+    }
 }

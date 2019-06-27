@@ -26,6 +26,8 @@ private:
     Spider spider;
     QWidget* parent;
     Ui::SpiderWindow *ui;
+protected:
+    void showEvent(QShowEvent* event);
 };
 
 #endif // SPIDERWINDOW_H
