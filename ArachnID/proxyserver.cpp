@@ -42,8 +42,13 @@ void ProxyServer::send_request_to_the_web(QString request) {
     QString first_line;
     map<QString, QString> fields;
     tie(fields, first_line) = HTTP_Helper::parse_html_header(QString(fixed.c_str()));
-    // por enquanto nao suportamos POST e CONNECT
+//    por enquanto nao suportamos POST e CONNECT
     if(first_line.contains("POST") or first_line.contains("CONNECT")) {
+        QString CRNL = "";
+        CRNL += QChar::CarriageReturn;
+        CRNL += QChar::LineFeed;
+        QString refuse_response = "HTTP/1.1 504 Not Implemented" + CRNL + CRNL;
+        write(browser_socket, refuse_response.toStdString().c_str(), refuse_response.size());
         close(browser_socket);
         QtConcurrent::run(this, &ProxyServer::listen_browser);
         return;

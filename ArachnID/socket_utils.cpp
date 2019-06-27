@@ -15,9 +15,9 @@ int SocketUtils::read_until_terminators(int sock_fd,char* buf, char* terminator,
         if(should_break) break;
         read(sock_fd,buf+total,1);
         total++;
-        if(total == 1 << 15) {
+        if(total == 1 << 22) {
             qDebug() << "dios mio" << endl;
-            buf[1 << 15] = 0;
+            buf[1 << 22] = 0;
             qDebug() << QString(buf) << endl;
         }
     }
