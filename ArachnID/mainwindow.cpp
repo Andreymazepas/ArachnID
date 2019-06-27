@@ -67,3 +67,12 @@ void MainWindow::treat_spider_closed() {
     spiderUi = nullptr;
     this->ui->spiderButton->setEnabled(true);
 }
+
+void MainWindow::on_dumpButton_clicked()
+{
+    if(dumpUi.isHidden()){
+        dumpUi.show();
+    } else {
+        dumpUi.activateWindow();
+    }
+}
