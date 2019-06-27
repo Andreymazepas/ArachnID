@@ -11,6 +11,7 @@ map<QString, QString> HTTP_Helper::simplify_http_header(map<QString ,QString> co
     simplified_header["connection"] = "close";
     simplified_header["accept-encoding"] = "identity";
     simplified_header.erase("range");
+    simplified_header.erase("proxy-connection");
     simplified_header.erase("if-range");
     return simplified_header;
 }

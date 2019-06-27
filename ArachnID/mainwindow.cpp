@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include <spiderwindow.h>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -13,15 +13,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&pServer, &ProxyServer::got_response, this, &MainWindow::got_response);
     connect(this, &MainWindow::send_response, &pServer, &ProxyServer::send_response_to_the_browser);
-
+    connect(spiderUi, &SpiderWindow::spider_was_closed, this, &MainWindow::treat_spider_closed);
     QFuture<void> _ = QtConcurrent::run(&this->pServer, &ProxyServer::setup);
     this->ui->requestButton->setDisabled(true);
     this->ui->responseButton->setDisabled(true);
 }
 
 MainWindow::~MainWindow() {
-    delete &(this->pServer);
     delete ui;
+    if(spiderUi != nullptr) {
+        delete spiderUi;
+    }
 }
 
 void MainWindow::on_requestButton_clicked() {
@@ -31,25 +33,37 @@ void MainWindow::on_requestButton_clicked() {
     emit send_request(aux);
 }
 
-void MainWindow::got_request(QString text)
-{
+void MainWindow::got_request(QString text) {
    //qDebug() << "From mainWindow: " << name << " " << number;
     this->ui->responseButton->setDisabled(true);
     this->ui->requestButton->setEnabled(true);
     this->ui->requestTextEdit->setPlainText(text);
 }
 
-void MainWindow::got_response(QString text)
-{
+void MainWindow::got_response(QString text) {
    //qDebug() << "From mainWindow: " << name << " " << number;
     this->ui->responseButton->setEnabled(true);
     this->ui->responseTextEdit->setPlainText(text);
 }
 
-void MainWindow::on_responseButton_clicked()
-{
+void MainWindow::on_responseButton_clicked() {
     this->ui->responseButton->setDisabled(true);
     auto aux = this->ui->responseTextEdit->toPlainText();
     this->ui->responseTextEdit->clear();
     emit send_response(aux);
+}
+
+void MainWindow::on_spiderButton_clicked() {
+    if(spiderUi == nullptr) {
+        spiderUi = new SpiderWindow(this);
+    }
+    spiderUi->show();
+    this->ui->spiderButton->setDisabled(true);
+}
+
+void MainWindow::treat_spider_closed() {
+    qDebug() << "so vendo msm\n";
+    delete(spiderUi);
+    spiderUi = nullptr;
+    this->ui->spiderButton->setEnabled(true);
 }

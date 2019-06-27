@@ -25,8 +25,8 @@ using namespace std;
 
 //QString CRNL{QChar::CarriageReturn, QChar::LineFeed};
 
-QString build_request_for_path(QString host, QString path) {
-    QString first_line = "GET " + host + path + " HTTP/1.1";
+QString Spider::build_request_for_path(QString host, QString path) {
+    QString first_line = "GET http://" + host + path + " HTTP/1.1";
     map<QString, QString> fields;
     fields["host"] = host;
     fields["connection"] = "close";
@@ -34,7 +34,7 @@ QString build_request_for_path(QString host, QString path) {
     return HTTP_Helper::build_html_header(fields, first_line);
 }
 
-QStringList extract_links(QString content) {
+QStringList Spider::extract_links(QString content) {
     int next = 0;
     QStringList result;
     QString pattern = "<a href=\"";
@@ -51,17 +51,20 @@ QStringList extract_links(QString content) {
     return result;
 }
 
-map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
+map<QString, vector<QString>> Spider::crawl_page(QString host, QString start_path) {
     map<QString, vector<QString>> graph;
     //          path     file
     queue<QString> q;
     char buf[1 << 22];
     char BRBN[4] = {'\r', '\n', '\r', '\n'};
+    set<QString> enqueued;
     q.push(start_path);
+    enqueued.emplace(start_path);
     while(q.size()) {
         QString cur = q.front();
         q.pop();
         QString request = build_request_for_path(host, cur);
+        qDebug() << request << endl;
         int web_socket = SocketUtils::connect_and_get_socket(host);
 
         write(web_socket, request.toStdString().c_str(), request.toStdString().size());
@@ -90,8 +93,11 @@ map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
 
             // URL absoluta
             if(link.startsWith("/")) {
-                QString actual_link = link.right(int(link.size()) - 1);
-                q.push(actual_link);
+//                QString actual_link = link.right(int(link.size()) - 1);
+                if(enqueued.find(link) != enqueued.end()) continue;
+                enqueued.emplace(link);
+                graph[cur].emplace_back(link);
+                q.push(link);
                 continue;
             }
 
@@ -100,13 +106,17 @@ map<QString, vector<QString>> crawl_page(QString host, QString start_path) {
             QString cur_file = cur.right(int(cur.size() - cur.lastIndexOf("/") - 1));
             QString actual_link;
             if(link.startsWith("./")) {
-                actual_link = link.right(int(link.size()) - 2);
+                actual_link = cur_path + link.right(int(link.size()) - 2);
             } else {
-                actual_link = link;
+                actual_link = cur_path + link;
             }
+            if(enqueued.find(actual_link) != enqueued.end()) continue;
+            enqueued.emplace(cur_path + actual_link);
             q.push(cur_path + actual_link);
+            graph[cur].emplace_back(cur_path + actual_link);
         }
 
     }
+    qDebug() << "finished crawling\n";
     return graph;
 }

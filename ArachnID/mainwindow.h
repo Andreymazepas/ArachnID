@@ -5,9 +5,10 @@
 #include <QDebug>
 #include <proxyserver.h>
 #include <QtConcurrent>
+#include "spiderwindow.h"
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow {
@@ -23,13 +24,15 @@ signals:
 private slots:
     void on_requestButton_clicked();
     void on_responseButton_clicked();
+    void on_spiderButton_clicked();
 
 public slots:
     void got_request(QString text);
     void got_response(QString text);
-
+    void treat_spider_closed();
 private:
     Ui::MainWindow *ui;
+    SpiderWindow* spiderUi = new SpiderWindow(this);
     ProxyServer pServer;
 };
 

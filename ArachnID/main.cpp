@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <QDebug>
+#include "spider.h"
+#include <QtConcurrent>
 
 #define MSQID 140140522
 
@@ -47,7 +49,7 @@ long obtainQueue() {
 
 
 int main(int argc, char *argv[]) {
-
+//    QtConcurrent::run()
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
