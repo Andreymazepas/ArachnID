@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        dumpwindow.cpp \
         http_helper.cpp \
         main.cpp \
         mainwindow.cpp \
@@ -35,6 +36,7 @@ SOURCES += \
 
 HEADERS += \
         common.h \
+        dumpwindow.h \
         http_helper.h \
         mainwindow.h \
         proxyserver.h \
@@ -43,6 +45,7 @@ HEADERS += \
         spiderwindow.h
 
 FORMS += \
+        dumpwindow.ui \
         mainwindow.ui \
         spiderwindow.ui
 
