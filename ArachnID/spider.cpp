@@ -38,10 +38,13 @@ QStringList Spider::extract_links(QString content) {
     int next = 0;
     QStringList result;
     QString pattern = "<a href=\"";
-    while(int next_index = content.indexOf(pattern, next) != -1) {
-//        qDebug() << "lopp extract\n";
+    qDebug() << "extraindo" << endl;
+    int next_index;
+    while((next_index = int(content.indexOf(pattern, next))) != -1) {
+        qDebug() << "lopp extract\n";
+        qDebug() << next_index << endl;
         int link_start = next_index + pattern.size();
-        QString acc;
+        QString acc = "";
         int i = link_start;
         while(content[i] != '\"') {
 //            qDebug() << "sublopp extract\n";
@@ -61,9 +64,16 @@ map<QString, vector<QString>> Spider::crawl_page(QString host, QString start_pat
     char buf[1 << 22];
     char BRBN[4] = {'\r', '\n', '\r', '\n'};
     set<QString> enqueued;
+    qDebug() << "host" << endl;
+    qDebug() << host << endl;
+    qDebug() << "start_path" << endl;
+    qDebug() << start_path << endl;
     q.push(start_path);
     enqueued.emplace(start_path);
+    int it = 0;
     while(q.size()) {
+        it++;
+        if(it == 25) break;
         QString cur = q.front();
         q.pop();
         qDebug() << cur << endl;
@@ -82,17 +92,23 @@ map<QString, vector<QString>> Spider::crawl_page(QString host, QString start_pat
         tie(fields, first_line) = HTTP_Helper::parse_html_header(response_header);
         SocketUtils::read_exactly(web_socket, buf, fields["content-length"].toInt());
         QString content(buf);
-
+        if(not first_line.contains("200")) {
+            qDebug() << "deu ruim nao veio 200 ok" << endl;
+            continue;
+        }
+        if(not fields["content-type"].contains("text")) continue;
         qDebug() << response_header << endl;
         qDebug() << content << endl;
 
         QStringList links = extract_links(content);
-
+        qDebug() << "extrai! " << endl;
         for(QString link : links) {
             qDebug() << "link: " << link << endl;
             // link vazio, nao deveria acontecer em páginas normais,
             // mas é possível sair de output da função.
             if(link.isEmpty()) continue;
+            // email (?)
+            if(link.startsWith("mailto")) continue;
             // link externo
             if(link.startsWith("http")) continue;
 
@@ -106,21 +122,32 @@ map<QString, vector<QString>> Spider::crawl_page(QString host, QString start_pat
                 continue;
             }
 
+
             // a partir daqui o link é (ou deveria ser) relativo
             QString cur_path = cur.left(cur.lastIndexOf("/") + 1);
-            QString cur_file = cur.right(int(cur.size() - cur.lastIndexOf("/") - 1));
+            QString cur_file = cur.right(int(cur.size()) - int(cur_path.size()));
             QString actual_link;
+            qDebug() << "eh relativo" << endl;
             if(link.startsWith("./")) {
                 actual_link = cur_path + link.right(int(link.size()) - 2);
             } else {
                 actual_link = cur_path + link;
             }
-            if(enqueued.find(actual_link) != enqueued.end()) continue;
-            enqueued.emplace(cur_path + actual_link);
-            q.push(cur_path + actual_link);
-            graph[cur].emplace_back(cur_path + actual_link);
-        }
 
+            qDebug() << "cur" << endl;
+            qDebug() << cur << endl;
+            qDebug() << "cur path" << endl;
+            qDebug() << cur_path << endl;
+            qDebug() << "cur file" << endl;
+            qDebug() << cur_file << endl;
+
+            qDebug() << "path completo eh:" << endl;
+            qDebug() << actual_link << endl;
+            if(enqueued.find(actual_link) != enqueued.end()) continue;
+            enqueued.emplace(actual_link);
+            q.push(actual_link);
+            graph[cur].emplace_back(actual_link);
+        }
     }
     qDebug() << "finished crawling\n";
     return graph;

@@ -31,8 +31,8 @@ SOURCES += \
         proxyserver.cpp \
         spider.cpp \
         socket_utils.cpp \
-        spiderwindow.cpp
-
+        spiderwindow.cpp \
+        dumpwindow.cpp
 HEADERS += \
         common.h \
         http_helper.h \
@@ -40,11 +40,13 @@ HEADERS += \
         proxyserver.h \
         spider.h \
         socket_utils.h \
-        spiderwindow.h
+        spiderwindow.h \
+        dumpwindow.h
 
 FORMS += \
         mainwindow.ui \
-        spiderwindow.ui
+        spiderwindow.ui \
+        dumpwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

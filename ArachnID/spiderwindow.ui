@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="urlEdit">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -24,7 +24,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="crawlButton">
     <property name="geometry">
      <rect>
       <x>610</x>

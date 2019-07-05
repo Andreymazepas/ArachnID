@@ -20,12 +20,14 @@ signals:
     void spider_was_closed();
 private slots:
 
-    void on_pushButton_clicked();
+    void on_crawlButton_clicked();
 
 private:
     Spider spider;
     QWidget* parent;
     Ui::SpiderWindow *ui;
+    pair<QString, QString> split_host_path(QString whole);
+
 protected:
     void showEvent(QShowEvent* event);
 };
